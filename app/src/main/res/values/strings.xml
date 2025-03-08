@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">PI3-Turma2-5</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="ResumedInfo">O projeto integrador deste semestre consiste no desenvolvimento de um
+        Gerenciador de Autenticações, um ecossistema completo para a gestão segura de credenciais.
+        O sistema abrange desde a criação de contas, armazenamento seguro de senhas utilizando boas
+        práticas de criptografia, até a autenticação de usuários para acesso a sistemas. O objetivo
+        é garantir segurança, eficiência e escalabilidade no processo de login, seguindo padrões
+        modernos de proteção de dados.</string>
+
 </resources>
