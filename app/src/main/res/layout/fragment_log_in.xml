@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:background="#13122C"
+    tools:context=".LoginActivity">
+
+    <ImageView
+        android:id="@+id/imageView3"
+        android:layout_width="300dp"
+        android:layout_height="232dp"
+        android:background="@mipmap/logo_image_foreground"
+        app:layout_constraintBottom_toTopOf="@+id/txTermsAndCondition"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <LinearLayout
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:padding="24dp"
+        android:orientation="vertical"
+        android:elevation="8dp">
+
+        <!-- Campo de Email com fundo destacado e borda arredondada -->
+        <EditText
+            android:id="@+id/etEmail"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/input_highlighted"
+            android:backgroundTint="#292B4A"
+            android:hint="Email"
+            android:inputType="textEmailAddress"
+            android:padding="10dp"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#AAB2C8"
+            android:visibility="visible" />
+
+        <!-- Campo de Senha com fundo destacado e borda arredondada -->
+        <EditText
+            android:id="@+id/etSenha"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:hint="Senha"
+            android:padding="10dp"
+            android:textColorHint="#AAB2C8"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#292B4A"
+            android:background="@drawable/input_highlighted"
+            android:inputType="textPassword"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Botão de Entrar -->
+        <Button
+            android:id="@+id/btnEntrar"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="ENTRAR"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#007BFF"
+            android:layout_marginTop="12dp"/>
+
+        <!-- Texto de Cadastro -->
+        <TextView
+            android:id="@+id/tvCadastro"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp"
+            android:text="Não tem uma conta? "
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"/>
+
+        <TextView
+            android:id="@+id/tvCadastrar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="Cadastre-se"
+            android:textColor="#007BFF"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:clickable="true"
+            android:focusable="true"/>
+    </LinearLayout>
+</LinearLayout>
