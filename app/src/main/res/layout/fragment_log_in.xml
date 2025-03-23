@@ -7,12 +7,12 @@
     android:gravity="center"
     android:orientation="vertical"
     android:background="#13122C"
-    tools:context=".LoginActivity">
+    tools:context=".LogInFragment">
 
     <ImageView
         android:id="@+id/imageView3"
-        android:layout_width="300dp"
-        android:layout_height="232dp"
+        android:layout_width="281dp"
+        android:layout_height="281dp"
         android:background="@mipmap/logo_image_foreground"
         app:layout_constraintBottom_toTopOf="@+id/txTermsAndCondition"
         app:layout_constraintEnd_toEndOf="parent"

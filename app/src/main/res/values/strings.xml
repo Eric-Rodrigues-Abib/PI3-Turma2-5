@@ -9,6 +9,7 @@
         modernos de proteção de dados.</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="checkbox1">Você aceita os termos e condições do aplicativo?</string>
 
 
 </resources>

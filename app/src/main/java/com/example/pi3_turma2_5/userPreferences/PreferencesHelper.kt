@@ -9,15 +9,21 @@ class PreferencesHelper private constructor(context: Context){
 
     var uid: String
         get() = sharedPreferences.getString(UID_KEY, "") ?: ""
-        set(value) = sharedPreferences.edit() { putString(UID_KEY, value) }
+        set(value) {
+            sharedPreferences.edit() { putString(UID_KEY, value) }
+        }
 
     var infoBool: Boolean
         get() = sharedPreferences.getBoolean(INFO_BOOL, false)
-        set(value) = sharedPreferences.edit() { putBoolean(INFO_BOOL, value) }
+        set(value) {
+            sharedPreferences.edit() { putBoolean(INFO_BOOL, value) }
+        }
 
     var termsAndConditionBool: Boolean
         get() = sharedPreferences.getBoolean(TERMSANDCONDITION_BOOL, false)
-        set(value) = sharedPreferences.edit() { putBoolean(TERMSANDCONDITION_BOOL, value) }
+        set(value) {
+            sharedPreferences.edit() { putBoolean(TERMSANDCONDITION_BOOL, value) }
+        }
 
     companion object {
         private const val USER_PREFERENCES_NAME = "prefs_tokens"
