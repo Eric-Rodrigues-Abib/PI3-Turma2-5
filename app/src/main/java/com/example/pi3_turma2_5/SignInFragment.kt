@@ -16,6 +16,7 @@ import androidx.navigation.fragment.findNavController
 import com.example.pi3_turma2_5.databinding.FragmentSignInBinding
 import com.example.pi3_turma2_5.userPreferences.PreferencesHelper
 import com.google.android.gms.common.api.GoogleApi.Settings
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
@@ -30,8 +31,6 @@ class SignInFragment : Fragment() {
 
     private var _binding: FragmentSignInBinding? = null
     private val binding get() = _binding!!
-
-    private lateinit var preferencesHelper: PreferencesHelper
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -51,6 +50,10 @@ class SignInFragment : Fragment() {
                 binding.etSenha.text.toString()
             )
         }
+
+        binding.tvVoltarLogin.setOnClickListener {
+            findNavController().navigate(R.id.action_signInFragment_to_logInFragment)
+        }
     }
 
     //falta ainda confirmar os datos e também inserir no firestore
@@ -69,15 +72,18 @@ class SignInFragment : Fragment() {
                     if (task.isSuccessful) {
                         Log.d(TAG,  "createUserWithEmail:success")
                         val user = auth.currentUser
+                        val preferencesHelper = PreferencesHelper.getInstance(requireContext())
                         preferencesHelper.uid = user!!.uid
                         val userIMEI = getIMEI(requireContext())
                         salvarUsuarioNoFirestore(nome, email, senha, userIMEI, user.uid)
                         findNavController().navigate(R.id.action_signInFragment_to_logInFragment)
                     }
                     else {
-                        Log.e("Firebase auth", "Impossível criar")
+                        Log.e("Firebase auth", "Impossível criar " + task.exception)
                     }
                 }
+        } else {
+            Snackbar.make(requireView(),"Nome, email ou senha invalido, Porfavor cheque novamente",Snackbar.LENGTH_LONG).show()
         }
 
     }
@@ -86,8 +92,8 @@ class SignInFragment : Fragment() {
         nome: String,
         email: String,
         senha: String,
-        IMEI: String,
-        UID: String
+        imei: String,
+        uid: String
     ) {
        val db = FirebaseFirestore.getInstance()
 
@@ -95,11 +101,12 @@ class SignInFragment : Fragment() {
             "nome" to nome,
             "email" to email,
             "senha" to senha,
-            "IMEI" to IMEI,
-            "UID" to UID
+            "imei" to imei,
+            "uid" to uid
         )
 
-        db.collection("users").document(UID)
+        db.collection("users")
+            .document(uid)
             .set(user)
             .addOnSuccessListener {
                 Log.d("Firestore","usuário salvo com sucesso")
@@ -133,8 +140,7 @@ class SignInFragment : Fragment() {
     //necessário validar
     private fun userEmailValidation(email: String): Boolean {
         if (!email.contains("@")) return false
-        val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\$"
-        if (!email.matches(emailRegex.toRegex())) return false
+
         return true
     }
 
@@ -142,30 +148,6 @@ class SignInFragment : Fragment() {
     private fun userPasswordValidation(pass: String): Boolean {
         //pelo menos 6 caracteres
         if (pass.length < 6) return false
-
-        //pelo menos um numero
-        var exp = ".*[0-9].*"
-        var pattern = Pattern.compile(exp, Pattern.CASE_INSENSITIVE)
-        var matcher = pattern.matcher(pass)
-        if (!matcher.matches()) return false
-
-        //pelo menos uma letra maiuscula
-        exp = ".*[A-Z].*"
-        pattern = Pattern.compile(exp)
-        matcher = pattern.matcher(pass)
-        if (!matcher.matches()) return false
-
-        //pelo menos um letra minuscula
-        exp = ".*[a-z].*"
-        pattern = Pattern.compile(exp)
-        matcher = pattern.matcher(pass)
-        if (!matcher.matches()) return false
-
-        //pelo menos um caracter especial
-        exp = ".*[@#$%^&+=].*"
-        pattern = Pattern.compile(exp)
-        matcher = pattern.matcher(pass)
-        if (!matcher.matches()) return false
 
         return true
     }
