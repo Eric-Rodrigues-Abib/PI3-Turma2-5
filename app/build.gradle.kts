@@ -62,4 +62,5 @@ dependencies {
     implementation(libs.androidx.navigation.ui)
     //fragment
     implementation(libs.androidx.fragment.ktx)
+    implementation(libs.play.services.location)
 }
