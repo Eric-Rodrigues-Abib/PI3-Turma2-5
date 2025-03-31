@@ -6,8 +6,7 @@
     android:layout_height="match_parent"
     android:gravity="center"
     android:orientation="vertical"
-    android:background="#13122C"
-    tools:context=".LogInFragment">
+    android:background="#13122C">
 
     <ImageView
         android:id="@+id/imageView3"
