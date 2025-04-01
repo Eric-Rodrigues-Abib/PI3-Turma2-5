@@ -1,7 +1,9 @@
 package com.example.pi3_turma2_5
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -44,8 +46,8 @@ class LogInFragment : Fragment() {
 
             if (!binding.etEmail.toString().isEmpty() && !binding.etSenha.toString().isEmpty()){
                 logInAccount(
-                    binding.etEmail.toString(),
-                    binding.etSenha.toString()
+                    binding.etEmail.text.toString().trim(),
+                    binding.etSenha.text.toString().trim()
                 )
             } else {
                 binding.etEmail.text.clear()
@@ -67,7 +69,17 @@ class LogInFragment : Fragment() {
             .addOnCompleteListener {
                 if (it.isSuccessful) {
                     //needs to start the new MainFeatureActivity
+                    startActivity(
+                        Intent(
+                            requireActivity(),
+                            FeatureActivity::class.java)
+                    )
+                    requireActivity().finish()
                 } else {
+                    Log.e(
+                        TAG,
+                        "logInAccount: Failed to log in user ${it.exception?.message}"
+                    )
                     Snackbar.make(requireView(),"Email/Senha incorreto(s), porfavor revise",Snackbar.LENGTH_LONG).show()
                 }
             }
