@@ -76,6 +76,7 @@ class SignInFragment : Fragment() {
                         preferencesHelper.uid = user!!.uid
                         val userIMEI = getIMEI(requireContext())
                         salvarUsuarioNoFirestore(nome, email, senha, userIMEI, user.uid)
+                        Snackbar.make(requireView(),"Usuário criado com sucesso",Snackbar.LENGTH_LONG).show()
                         findNavController().navigate(R.id.action_signInFragment_to_logInFragment)
                     }
                     else {
