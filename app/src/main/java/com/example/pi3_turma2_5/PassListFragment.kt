@@ -37,7 +37,13 @@ class PassListFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         adapter = PasswordAdapter(passwordList) { password ->
-            // TODO: ação ao clicar na senha
+            val bundle = Bundle().apply {
+                putString("nomeSite", password.nomeSite)
+                putString("categoria", password.categoria)
+                putString("senha", password.senha)
+                putString("accessToken", password.accessToken)
+            }
+            findNavController().navigate(R.id.action_passListFragment_to_passwordDetailsFragment, bundle)
         }
 
         binding.passwordRecyclerView.adapter = adapter
