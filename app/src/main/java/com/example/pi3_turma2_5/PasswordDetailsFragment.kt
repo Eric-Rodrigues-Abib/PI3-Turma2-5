@@ -49,7 +49,7 @@ class PasswordDetailsFragment : Fragment() {
         }
 
         binding.IBedit.setOnClickListener {
-            //TODO: navegar para a pagina de edição
+            //TODO: navegar para a pagina de edição agora
         }
 
         binding.btnExcluir.setOnClickListener {
