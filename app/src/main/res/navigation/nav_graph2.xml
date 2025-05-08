@@ -9,6 +9,31 @@
         android:id="@+id/passListFragment"
         android:name="com.example.pi3_turma2_5.PassListFragment"
         android:label="fragment_pass_list"
-        tools:layout="@layout/fragment_pass_list" />
+        tools:layout="@layout/fragment_pass_list" >
+        <action
+            android:id="@+id/action_passListFragment_to_addNewPassFragment"
+            app:destination="@id/addNewPassFragment" />
+        <action
+            android:id="@+id/action_passListFragment_to_passwordDetailsFragment"
+            app:destination="@id/passwordDetailsFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/addNewPassFragment"
+        android:name="com.example.pi3_turma2_5.AddNewPassFragment"
+        android:label="fragment_add_new_pass"
+        tools:layout="@layout/fragment_add_new_pass" >
+        <action
+            android:id="@+id/action_addNewPassFragment_to_passListFragment"
+            app:destination="@id/passListFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/passwordDetailsFragment"
+        android:name="com.example.pi3_turma2_5.PasswordDetailsFragment"
+        android:label="fragment_password_details"
+        tools:layout="@layout/fragment_password_details" >
+        <action
+            android:id="@+id/action_passwordDetailsFragment_to_passListFragment"
+            app:destination="@id/passListFragment" />
+    </fragment>
 
 </navigation>
