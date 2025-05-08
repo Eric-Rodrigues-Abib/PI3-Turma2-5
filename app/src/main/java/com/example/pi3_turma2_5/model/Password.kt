@@ -4,5 +4,6 @@ data class Password(
     val nomeSite: String = "",
     val senha: String = "",
     val categoria: String = "",
-    val accessToken: String = ""
+    val accessToken: String = "",
+    val documentId: String = ""
 )

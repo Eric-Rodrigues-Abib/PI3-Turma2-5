@@ -42,6 +42,7 @@ class PassListFragment : Fragment() {
                 putString("categoria", password.categoria)
                 putString("senha", password.senha)
                 putString("accessToken", password.accessToken)
+                putString("documentId", password.documentId)
             }
             findNavController().navigate(R.id.action_passListFragment_to_passwordDetailsFragment, bundle)
         }
@@ -66,7 +67,7 @@ class PassListFragment : Fragment() {
                 passwordList.clear()
                 Log.d("FIREBASE_LIST", "Documentos retornados: ${result.size()}")
                 for (doc in result) {
-                    val password = doc.toObject(Password::class.java)
+                    val password = doc.toObject(Password::class.java).copy(documentId = doc.id)
                     Log.d("FIREBASE_LIST", "Senha carregada: $password")
                     passwordList.add(password)
                 }
