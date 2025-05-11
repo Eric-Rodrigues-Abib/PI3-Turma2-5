@@ -99,8 +99,7 @@ class PasswordEditFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            val selectedOption = getSelectedCategory()
-            if (selectedOption != "Selecione uma das opções") {
+            if (novaCategoria != "Selecione uma das opções") {
                 val senhaHash = createMd5Hash(novaSenha)
                 val novoAccessToken = generateAccessToken()
 
