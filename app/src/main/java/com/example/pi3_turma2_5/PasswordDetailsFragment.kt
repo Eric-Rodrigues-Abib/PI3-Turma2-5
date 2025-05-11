@@ -50,6 +50,14 @@ class PasswordDetailsFragment : Fragment() {
 
         binding.IBedit.setOnClickListener {
             //TODO: navegar para a pagina de edição
+            val bundle = Bundle().apply {
+                putString("nomeSite", nome)
+                putString("categoria", categoria)
+                putString("senha", senha)
+                putString("accessToken", accessToken)
+                putString("documentId", documentId)
+            }
+            findNavController().navigate(R.id.action_passwordDetailsFragment_to_passwordEditFragment, bundle)
         }
 
         binding.btnExcluir.setOnClickListener {
