@@ -34,6 +34,21 @@
         <action
             android:id="@+id/action_passwordDetailsFragment_to_passListFragment"
             app:destination="@id/passListFragment" />
+        <action
+            android:id="@+id/action_passwordDetailsFragment_to_passwordEditFragment"
+            app:destination="@id/passwordEditFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/passwordEditFragment"
+        android:name="com.example.pi3_turma2_5.PasswordEditFragment"
+        android:label="fragment_password_edit"
+        tools:layout="@layout/fragment_password_edit" >
+        <action
+            android:id="@+id/action_passwordEditFragment_to_passwordDetailsFragment"
+            app:destination="@id/passwordDetailsFragment" />
+        <action
+            android:id="@+id/action_passwordEditFragment_to_passListFragment"
+            app:destination="@id/passListFragment" />
     </fragment>
 
 </navigation>

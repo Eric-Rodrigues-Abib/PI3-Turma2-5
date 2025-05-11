@@ -37,6 +37,7 @@ class AddNewPassFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        auth = FirebaseAuth.getInstance()
 
         binding.IBback.setOnClickListener {
             //navigate to the passwords list fragment
