@@ -16,6 +16,9 @@
         <action
             android:id="@+id/action_passListFragment_to_passwordDetailsFragment"
             app:destination="@id/passwordDetailsFragment" />
+        <action
+            android:id="@+id/action_passListFragment_to_qrScannerFragment"
+            app:destination="@id/qrScannerFragment" />
     </fragment>
     <fragment
         android:id="@+id/addNewPassFragment"
@@ -48,6 +51,14 @@
             app:destination="@id/passwordDetailsFragment" />
         <action
             android:id="@+id/action_passwordEditFragment_to_passListFragment"
+            app:destination="@id/passListFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/qrScannerFragment"
+        android:name="com.example.pi3_turma2_5.QrScannerFragment"
+        android:label="QrScannerFragment" >
+        <action
+            android:id="@+id/action_qrScannerFragment_to_passListFragment"
             app:destination="@id/passListFragment" />
     </fragment>
 
