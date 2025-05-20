@@ -57,7 +57,11 @@
         android:id="@+id/redefinirSenhaFragment"
         android:name="com.example.pi3_turma2_5.RedefinirSenhaFragment"
         android:label="Redefinir Senha"
-        tools:layout="@layout/fragment_redefinir_senha" />
+        tools:layout="@layout/fragment_redefinir_senha" >
+        <action
+            android:id="@+id/action_redefinirSenhaFragment_to_logInFragment"
+            app:destination="@id/logInFragment" />
+    </fragment>
 
 
 </navigation>
