@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center"
+    android:background="#13122C">
+
+    <LinearLayout
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:padding="24dp"
+        android:orientation="vertical"
+        android:background="@drawable/input_highlighted"
+        android:elevation="8dp">
+
+        <EditText
+            android:id="@+id/etEmailRedefinir"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:hint="Digite seu email"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#AAB2C8"
+            android:background="@drawable/input_highlighted"
+            android:inputType="textEmailAddress"
+            android:layout_marginBottom="16dp"/>
+
+        <Button
+            android:id="@+id/btnEnviarNovaSenha"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="Enviar nova senha"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#007BFF"/>
+    </LinearLayout>
+</LinearLayout>
