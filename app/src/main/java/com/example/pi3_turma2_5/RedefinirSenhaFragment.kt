@@ -63,6 +63,10 @@ class RedefinirSenhaFragment : Fragment() {
                     }
             }
         }
+
+        binding.IBback.setOnClickListener {
+            findNavController().navigate(R.id.action_redefinirSenhaFragment_to_logInFragment)
+        }
     }
 
     override fun onDestroyView() {
