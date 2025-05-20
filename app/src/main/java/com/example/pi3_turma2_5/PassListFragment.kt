@@ -36,6 +36,11 @@ class PassListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val qrResult = arguments?.getString("qr_value")
+        qrResult?.let {
+            Toast.makeText(requireContext(), "QrCode recebido: $it", Toast.LENGTH_SHORT).show()
+        }
+
         adapter = PasswordAdapter(passwordList) { password ->
             val bundle = Bundle().apply {
                 putString("nomeSite", password.nomeSite)
@@ -53,7 +58,7 @@ class PassListFragment : Fragment() {
             findNavController().navigate(R.id.action_passListFragment_to_addNewPassFragment)
         }
         binding.btnQRCode.setOnClickListener {
-            // TODO: ação ao clicar no botão QR Code
+            findNavController().navigate(R.id.action_passListFragment_to_qrScannerFragment)
         }
 
         fetchPasswords()
