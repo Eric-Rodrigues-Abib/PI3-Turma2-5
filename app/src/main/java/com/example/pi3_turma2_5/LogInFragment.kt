@@ -42,6 +42,11 @@ class LogInFragment : Fragment() {
             findNavController().navigate(R.id.action_logInFragment_to_signInFragment)
         }
 
+
+        binding.tvEsqueciSenha.setOnClickListener {
+            findNavController().navigate(R.id.action_logInFragment_to_redefinirSenhaFragment)
+        }
+
         binding.btnEntrar.setOnClickListener {
 
             if (!binding.etEmail.toString().isEmpty() && !binding.etSenha.toString().isEmpty()){

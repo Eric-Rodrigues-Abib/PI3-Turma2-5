@@ -53,6 +53,20 @@
             android:inputType="textPassword"
             android:layout_marginBottom="16dp"/>
 
+        <TextView
+            android:id="@+id/tvEsqueciSenha"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="12dp"
+            android:text="Esqueci minha senha"
+            android:textColor="#007BFF"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:clickable="true"
+            android:focusable="true"/>
+
+
         <!-- Botão de Entrar -->
         <Button
             android:id="@+id/btnEntrar"
