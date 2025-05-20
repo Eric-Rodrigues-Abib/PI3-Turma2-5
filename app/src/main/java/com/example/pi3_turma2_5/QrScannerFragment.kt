@@ -172,7 +172,7 @@ class QrScannerFragment : Fragment() {
 
                             //make show during 5 seconds
                             binding.root.postDelayed({
-                                if (dialog.isShowing()) dialog.dismiss()
+                                if (dialog.isShowing) dialog.dismiss()
                                 findNavController().navigate(R.id.action_qrScannerFragment_to_passListFragment)
                             }, 5000)
 
