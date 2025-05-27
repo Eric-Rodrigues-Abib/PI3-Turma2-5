@@ -15,6 +15,12 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.math.BigInteger
 import java.security.MessageDigest
+import java.security.SecureRandom
+import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
 
 
 class PasswordEditFragment : Fragment() {
@@ -28,6 +34,8 @@ class PasswordEditFragment : Fragment() {
     private lateinit var originalNome: String
     private lateinit var originalSenha: String
     private lateinit var originalCategoria: String
+    private lateinit var originalSecretKey: String
+    private lateinit var originalIV: String
 
 
     override fun onCreateView(
@@ -47,12 +55,16 @@ class PasswordEditFragment : Fragment() {
         val categoria = arguments?.getString("categoria") ?: "Sem categoria"
         val senha = arguments?.getString("senha") ?: "Sem senha"
         val accessToken = arguments?.getString("accessToken") ?: "Sem access token"
+        val secretKey = arguments?.getString("secretKey") ?: ""
+        val iv = arguments?.getString("iv") ?: ""
         documentId = arguments?.getString("documentId") ?: ""
 
         // Salva os dados originais
         originalNome = nome
         originalSenha = senha
         originalCategoria = categoria
+        originalSecretKey = secretKey
+        originalIV = iv
 
         // preenche os campos com os dados recebidos
         binding.etNomeSite.setText(nome)
@@ -69,6 +81,8 @@ class PasswordEditFragment : Fragment() {
                 putString("categoria", categoria)
                 putString("senha", senha)
                 putString("accessToken", accessToken)
+                putString("secretKey", secretKey)
+                putString("iv", iv)
                 putString("documentId", documentId)
             }
 
@@ -77,7 +91,9 @@ class PasswordEditFragment : Fragment() {
                 alertDialog.setTitle("Atenção")
                 alertDialog.setMessage("Você tem certeza que deseja voltar? As alterações não serão salvas.")
                 alertDialog.setPositiveButton("Sim") { _, _ ->
-                    findNavController().navigate(R.id.action_passwordEditFragment_to_passwordDetailsFragment, bundle)
+                    if (isAdded) {
+                        findNavController().navigate(R.id.action_passwordEditFragment_to_passwordDetailsFragment, bundle)
+                    }
                 }
                 alertDialog.setNegativeButton("Não", null)
                 alertDialog.show()
@@ -100,15 +116,30 @@ class PasswordEditFragment : Fragment() {
             }
 
             if (novaCategoria != "Selecione uma das opções") {
-                val senhaHash = createMd5Hash(novaSenha)
-                val novoAccessToken = generateAccessToken()
-
-                val novosDados = mapOf(
+                val novosDados = mutableMapOf<String, Any>(
                     "nomeSite" to novoNome,
-                    "senha" to senhaHash,
-                    "categoria" to novaCategoria,
-                    "accessToken" to novoAccessToken
+                    "categoria" to novaCategoria
                 )
+
+                if (novaSenha != originalSenha) {
+                    // NOVA SENHA => gera nova chave
+                    val newKey = generateSecretKey()
+                    val newIV = generateIV()
+                    val senhaCriptografada = encryptPassword(novaSenha, newKey, newIV)
+                    val novoAccessToken = generateAccessToken()
+
+                    novosDados["senha"] = senhaCriptografada
+                    novosDados["accessToken"] = novoAccessToken
+                    novosDados["secretKey"] = Base64.encodeToString(newKey.encoded, Base64.NO_WRAP)
+                    novosDados["iv"] = Base64.encodeToString(newIV.iv, Base64.NO_WRAP)
+
+                } else {
+                    // SENHA NÃO ALTERADA => mantém a chave antiga
+                    novosDados["senha"] = novaSenha
+                    novosDados["accessToken"] = accessToken
+                    novosDados["secretKey"] = originalSecretKey
+                    novosDados["iv"] = originalIV
+                }
 
                 db.collection("users")
                     .document(user!!.uid)
@@ -161,11 +192,31 @@ class PasswordEditFragment : Fragment() {
         return Base64.encodeToString(accessToken, android.util.Base64.NO_WRAP)
     }
 
-    //depois, transformar isso em uma função em uma pasta chamada utils
-    private fun createMd5Hash(SenhaSite: String): String {
-        // create the logic behind the cryptographing the password
-        val md = MessageDigest.getInstance("MD5")
-        return BigInteger(1, md.digest(SenhaSite.toByteArray())).toString(16).padStart(32, '0')
+    private fun generateSecretKey(): SecretKey {
+        val keyGenerator = KeyGenerator.getInstance("AES")
+        keyGenerator.init(256)
+        return keyGenerator.generateKey()
+    }
+
+    private fun generateIV(): IvParameterSpec {
+        val iv = ByteArray(16)
+        val secureRandom = SecureRandom()
+        secureRandom.nextBytes(iv)
+        return IvParameterSpec(iv)
+    }
+
+    private fun encryptPassword(
+        senhaSite: String,
+        secretKey: SecretKey,
+        iv: IvParameterSpec
+    ): String {
+        val plainText = senhaSite.toByteArray()
+
+        val cipher = Cipher.getInstance("AES/CBC/PKCS7Padding")
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey, iv)
+
+        val encrypt = cipher.doFinal(plainText)
+        return Base64.encodeToString(encrypt, Base64.DEFAULT)
     }
 
     override fun onDestroyView() {

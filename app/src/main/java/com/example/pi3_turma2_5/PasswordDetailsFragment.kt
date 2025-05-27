@@ -2,6 +2,7 @@ package com.example.pi3_turma2_5
 
 import android.app.AlertDialog
 import android.os.Bundle
+import android.util.Base64
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -13,6 +14,12 @@ import com.example.pi3_turma2_5.databinding.FragmentPasswordDetailsBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import java.security.SecureRandom
+import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
 
 class PasswordDetailsFragment : Fragment() {
 
@@ -37,11 +44,23 @@ class PasswordDetailsFragment : Fragment() {
         val categoria = arguments?.getString("categoria") ?: "Sem categoria"
         val senha = arguments?.getString("senha") ?: "Sem senha"
         val accessToken = arguments?.getString("accessToken") ?: "Sem access token"
+        val secretKey = arguments?.getString("secretKey") ?: ""
+        val iv = arguments?.getString("iv") ?: ""
         documentId = arguments?.getString("documentId") ?: ""
+
+        // Decrypt the password
+        //val decryptedPassword = decrypt(senha, secretKey, iv)
+        val senhaFinal = try {
+            decrypt(senha, secretKey, iv)
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro ao descriptografar a senha: ${e.message}")
+            senha
+
+        }
 
         binding.tvNomeSite.text = nome
         binding.tvCategoria.text = categoria
-        binding.tvSenha.text = senha
+        binding.tvSenha.text = senhaFinal
         binding.tvAccessToken.text = accessToken
 
         binding.IBback.setOnClickListener {
@@ -53,8 +72,10 @@ class PasswordDetailsFragment : Fragment() {
             val bundle = Bundle().apply {
                 putString("nomeSite", nome)
                 putString("categoria", categoria)
-                putString("senha", senha)
+                putString("senha", senhaFinal)
                 putString("accessToken", accessToken)
+                putString("secretKey", secretKey)
+                putString("iv", iv)
                 putString("documentId", documentId)
             }
             findNavController().navigate(R.id.action_passwordDetailsFragment_to_passwordEditFragment, bundle)
@@ -98,6 +119,32 @@ class PasswordDetailsFragment : Fragment() {
                 Log.e(TAG, "Erro ao excluir a senha", e)
 
             }
+    }
+
+    private fun decrypt(
+        senhaSite: String,
+        secretKey: String,
+        iv: String
+    ): String {
+        return try {
+            val cipher = Cipher.getInstance("AES/CBC/PKCS7Padding")
+
+            val secretKeyBytes = Base64.decode(secretKey, Base64.NO_WRAP)
+            val ivBytes = Base64.decode(iv, Base64.NO_WRAP)
+
+            val secretKeySpec = SecretKeySpec(secretKeyBytes, "AES")
+            val ivSpec = IvParameterSpec(ivBytes)
+
+            cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, ivSpec)
+
+            val encryptedBytes = Base64.decode(senhaSite, Base64.DEFAULT)
+            val decryptedBytes = cipher.doFinal(encryptedBytes)
+
+            String(decryptedBytes)
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro na descriptografia: ${e.message}")
+            senhaSite // Retorna como está (provavelmente já decriptado)
+        }
     }
 
     override fun onDestroyView() {
