@@ -18,6 +18,11 @@ import java.security.MessageDigest
 import android.util.Base64
 import android.util.Log
 import com.google.firebase.firestore.FieldValue
+import java.security.SecureRandom
+import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
+import javax.crypto.spec.IvParameterSpec
 
 class AddNewPassFragment : Fragment() {
 
@@ -76,7 +81,11 @@ class AddNewPassFragment : Fragment() {
             val user = auth.currentUser
 
             // create the logic behind the cryptographing the password
-            val passwordHased = createMd5Hash(SenhaSite)
+            // precisa ajustar para salvar a secrekey e o iv no firebase para decryptografar depois
+            // tanto na details quanto na edit, nao preciso gerar dnv, tenho que apenas pegar do firebase
+            val secretKey = generateSecretKey()
+            val iv = generateIV()
+            val passwordHased = encryptPassword(SenhaSite, secretKey, iv)
             // create the Access token 256 (base64)
             val accessToken = generateAccessToken()
 
@@ -85,6 +94,8 @@ class AddNewPassFragment : Fragment() {
                 "senha" to passwordHased,
                 "categoria" to Categoria,
                 "accessToken" to accessToken,
+                "secretKey" to Base64.encodeToString(secretKey.encoded, Base64.NO_WRAP),
+                "iv" to Base64.encodeToString(iv.iv, Base64.NO_WRAP),
             )
 
             //validate if the passwordHased and val accessToken are not empty and valid
@@ -128,10 +139,37 @@ class AddNewPassFragment : Fragment() {
         return Base64.encodeToString(accessToken, android.util.Base64.NO_WRAP)
     }
 
-    private fun createMd5Hash(SenhaSite: String): String {
-        // create the logic behind the cryptographing the password
-        val md = MessageDigest.getInstance("MD5")
-        return BigInteger(1, md.digest(SenhaSite.toByteArray())).toString(16).padStart(32, '0')
+//    private fun createMd5Hash(SenhaSite: String): String {
+//        // create the logic behind the cryptographing the password
+//        val md = MessageDigest.getInstance("MD5")
+//        return BigInteger(1, md.digest(SenhaSite.toByteArray())).toString(16).padStart(32, '0')
+//    }
+
+    private fun generateSecretKey(): SecretKey {
+        val keyGenerator = KeyGenerator.getInstance("AES")
+        keyGenerator.init(256)
+        return keyGenerator.generateKey()
+    }
+
+    private fun generateIV(): IvParameterSpec {
+        val iv = ByteArray(16)
+        val secureRandom = SecureRandom()
+        secureRandom.nextBytes(iv)
+        return IvParameterSpec(iv)
+    }
+
+    private fun encryptPassword(
+        senhaSite: String,
+        secretKey: SecretKey,
+        iv: IvParameterSpec
+    ): String {
+        val plainText = senhaSite.toByteArray()
+
+        val cipher = Cipher.getInstance("AES/CBC/PKCS7Padding")
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey, iv)
+
+        val encrypt = cipher.doFinal(plainText)
+        return Base64.encodeToString(encrypt, Base64.DEFAULT)
     }
 
     private fun checkradiogroup(): String {
