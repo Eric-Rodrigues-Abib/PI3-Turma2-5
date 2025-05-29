@@ -47,6 +47,8 @@ class PassListFragment : Fragment() {
                 putString("categoria", password.categoria)
                 putString("senha", password.senha)
                 putString("accessToken", password.accessToken)
+                putString("secretKey", password.secretKey)
+                putString("iv", password.iv)
                 putString("documentId", password.documentId)
             }
             findNavController().navigate(R.id.action_passListFragment_to_passwordDetailsFragment, bundle)
