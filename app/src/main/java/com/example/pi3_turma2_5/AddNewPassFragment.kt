@@ -45,15 +45,16 @@ class AddNewPassFragment : Fragment() {
         auth = FirebaseAuth.getInstance()
 
         binding.IBback.setOnClickListener {
-            //navigate to the passwords list fragment
+            // Navega de de volta para a lista de senhas
             findNavController().navigate(R.id.action_addNewPassFragment_to_passListFragment)
         }
 
+        // Configura o clique do botão de confirmar
         binding.btnConfirmar.setOnClickListener {
-            // Check if the user has selected a radio button
+            // Checa de os campos do radio group estão preenchidos
             val selectedOption = checkradiogroup()
             if (selectedOption != "Selecione uma das opções") {
-                // Show a message to the user
+                // Cria a nova senha com os dados preenchidos
                 createNewPassword(
                     binding.etNomeSite.text.toString(),
                     binding.etSenha.text.toString(),
@@ -69,26 +70,36 @@ class AddNewPassFragment : Fragment() {
         }
     }
 
+    /**
+     * Cria uma nova senha no Firestore com os dados fornecidos.
+     *
+     * @param NomeSite O nome do site ou aplicativo para o qual a senha está sendo criada.
+     * @param SenhaSite A senha a ser armazenada.
+     * @param Categoria A categoria da senha (por exemplo, "Site Web", "Aplicativo", etc.).
+     */
     private fun createNewPassword(
         NomeSite: String,
         SenhaSite: String,
         Categoria: String
     ) {
+        // Pega a instância do Firebase Auth e Firestore
         val auth = Firebase.auth
         val db = FirebaseFirestore.getInstance()
 
+        // Verifica se os campos NomeSite e SenhaSite não estão vazios
         if (!(NomeSite.isEmpty() || SenhaSite.isEmpty())) {
             val user = auth.currentUser
 
-            // create the logic behind the cryptographing the password
-            // precisa ajustar para salvar a secrekey e o iv no firebase para decryptografar depois
-            // tanto na details quanto na edit, nao preciso gerar dnv, tenho que apenas pegar do firebase
+            // Gera a chave secreta e o vetor de inicialização (IV) para criptografia
             val secretKey = generateSecretKey()
             val iv = generateIV()
+            // Criptografa a senha usando AES/CBC/PKCS7Padding
             val passwordHased = encryptPassword(SenhaSite, secretKey, iv)
+
             // create the Access token 256 (base64)
             val accessToken = generateAccessToken()
 
+            // Cria um objeto HashMap para armazenar os dados da senha
             val passwordObject = hashMapOf(
                 "nomeSite" to NomeSite,
                 "senha" to passwordHased,
@@ -98,7 +109,7 @@ class AddNewPassFragment : Fragment() {
                 "iv" to Base64.encodeToString(iv.iv, Base64.NO_WRAP),
             )
 
-            //validate if the passwordHased and val accessToken are not empty and valid
+            // Valida se a senha criptografada e o token de acesso estão vazios
             if (passwordHased.isEmpty() || accessToken.isEmpty()) {
                 Snackbar.make(
                     binding.root,
@@ -108,6 +119,7 @@ class AddNewPassFragment : Fragment() {
                 return
             }
 
+            // Adiciona a senha ao Firestore na coleção "users" do usuário autenticado
             db.collection("users")
                 .document(user!!.uid)
                 .collection("listPassword")
@@ -130,6 +142,11 @@ class AddNewPassFragment : Fragment() {
         }
     }
 
+    /**
+     * Gera um token de acesso aleatório de 256 bits codificado em Base64.
+     *
+     * @return O token de acesso gerado.
+     */
     private fun generateAccessToken(): String {
         // generates the access token 256 (base64)
         val accessToken = ByteArray(32)
@@ -139,18 +156,22 @@ class AddNewPassFragment : Fragment() {
         return Base64.encodeToString(accessToken, android.util.Base64.NO_WRAP)
     }
 
-//    private fun createMd5Hash(SenhaSite: String): String {
-//        // create the logic behind the cryptographing the password
-//        val md = MessageDigest.getInstance("MD5")
-//        return BigInteger(1, md.digest(SenhaSite.toByteArray())).toString(16).padStart(32, '0')
-//    }
-
+    /**
+     * Gera uma chave secreta AES de 256 bits.
+     *
+     * @return A chave secreta gerada.
+     */
     private fun generateSecretKey(): SecretKey {
         val keyGenerator = KeyGenerator.getInstance("AES")
         keyGenerator.init(256)
         return keyGenerator.generateKey()
     }
 
+    /**
+     * Gera um vetor de inicialização (IV) aleatório de 16 bytes.
+     *
+     * @return O vetor de inicialização gerado.
+     */
     private fun generateIV(): IvParameterSpec {
         val iv = ByteArray(16)
         val secureRandom = SecureRandom()
@@ -158,6 +179,14 @@ class AddNewPassFragment : Fragment() {
         return IvParameterSpec(iv)
     }
 
+    /**
+     * Criptografa a senha usando AES/CBC/PKCS7Padding.
+     *
+     * @param senhaSite A senha a ser criptografada.
+     * @param secretKey A chave secreta usada para criptografia.
+     * @param iv O vetor de inicialização usado para criptografia.
+     * @return A senha criptografada codificada em Base64.
+     */
     private fun encryptPassword(
         senhaSite: String,
         secretKey: SecretKey,
@@ -172,6 +201,11 @@ class AddNewPassFragment : Fragment() {
         return Base64.encodeToString(encrypt, Base64.DEFAULT)
     }
 
+    /**
+     * Verifica qual opção do RadioGroup foi selecionada e retorna a categoria correspondente.
+     *
+     * @return A categoria selecionada ou uma mensagem de erro se nenhuma opção for selecionada.
+     */
     private fun checkradiogroup(): String {
         return when (binding.RadioGroup.checkedRadioButtonId) {
             binding.radioButton1.id -> "Site Web"
