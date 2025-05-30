@@ -40,6 +40,8 @@ class PasswordDetailsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Inicializa os campos com os dados passados pelo Bundle
+        // dados recebidos do fragment anterior
         val nome = arguments?.getString("nomeSite") ?: "Sem nome"
         val categoria = arguments?.getString("categoria") ?: "Sem categoria"
         val senha = arguments?.getString("senha") ?: "Sem senha"
@@ -48,8 +50,9 @@ class PasswordDetailsFragment : Fragment() {
         val iv = arguments?.getString("iv") ?: ""
         documentId = arguments?.getString("documentId") ?: ""
 
-        // Decrypt the password
-        //val decryptedPassword = decrypt(senha, secretKey, iv)
+        // Decrypt a senha encryptada. A lógica aqui é
+        // como a senha volta também da EditFragment
+        // e se a senha já estiver decriptada, não faz nada
         val senhaFinal = try {
             decrypt(senha, secretKey, iv)
         } catch (e: Exception) {
@@ -58,15 +61,18 @@ class PasswordDetailsFragment : Fragment() {
 
         }
 
+        // Configura os TextViews com os dados recebidos
         binding.tvNomeSite.text = nome
         binding.tvCategoria.text = categoria
         binding.tvSenha.text = senhaFinal
         binding.tvAccessToken.text = accessToken
 
+        // Configura os botões de navegação para voltar a lista de senhas
         binding.IBback.setOnClickListener {
             findNavController().navigate(R.id.action_passwordDetailsFragment_to_passListFragment)
         }
 
+        // Configura o botão de editar senha passando o bundle com os dados
         binding.IBedit.setOnClickListener {
             //TODO: navegar para a pagina de edição
             val bundle = Bundle().apply {
@@ -81,11 +87,16 @@ class PasswordDetailsFragment : Fragment() {
             findNavController().navigate(R.id.action_passwordDetailsFragment_to_passwordEditFragment, bundle)
         }
 
+        // Configura o botão de excluir senha
         binding.btnExcluir.setOnClickListener {
             showDeleteConfirmationDialog()
         }
     }
 
+    /**
+     * Função para mostrar um diálogo de confirmação antes de excluir a senha
+     * Exibe um AlertDialog com opções de confirmação e cancelamento
+     */
     private fun showDeleteConfirmationDialog() {
         val builder = AlertDialog.Builder(requireContext())
         builder.setTitle("Você tem certeza?")
@@ -94,11 +105,16 @@ class PasswordDetailsFragment : Fragment() {
         builder.setPositiveButton("Eu quero!") { _, _ ->
             deletePassword()
         }
-        // cancel the action, user dont want to delete
+        // Cancela a exclusão caso o usuário clique em cancelar
         builder.setNegativeButton("Cancelar") { dialog, which -> }
         builder.show()
     }
 
+    /**
+     * Função para excluir a senha do Firestore
+     * Verifica se o documentId está vazio, caso esteja, não faz nada
+     * Se não estiver vazio, exclui o documento correspondente
+     */
     private fun deletePassword(){
         if (documentId.isEmpty()) {
             Toast.makeText(requireContext(), "ID inválido, não foi possível excluir", Toast.LENGTH_SHORT).show()
@@ -121,6 +137,13 @@ class PasswordDetailsFragment : Fragment() {
             }
     }
 
+    /**
+     * Função para descriptografar a senha usando AES/CBC/PKCS7Padding
+     * @param senhaSite A senha criptografada em Base64
+     * @param secretKey A chave secreta em Base64
+     * @param iv O vetor de inicialização (IV) em Base64
+     * @return A senha decriptada como String
+     */
     private fun decrypt(
         senhaSite: String,
         secretKey: String,

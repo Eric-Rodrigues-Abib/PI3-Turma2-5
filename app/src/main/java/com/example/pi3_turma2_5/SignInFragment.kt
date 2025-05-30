@@ -43,6 +43,7 @@ class SignInFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Ao clicar no botão de cadastrar, chama a função signInNewAccount
         binding.btnCadastrar.setOnClickListener {
             signInNewAccount(
                 binding.etNome.text.toString(),
@@ -51,12 +52,18 @@ class SignInFragment : Fragment() {
             )
         }
 
+        // Ao clicar no botão de voltar para o login, navega para o fragmento de login
         binding.tvVoltarLogin.setOnClickListener {
             findNavController().navigate(R.id.action_signInFragment_to_logInFragment)
         }
     }
 
-    //falta ainda confirmar os datos e também inserir no firestore
+    /**
+     * Cria uma nova conta de usuário com email e senha
+     * @param nome Nome do usuário
+     * @param email Email do usuário
+     * @param senha Senha do usuário
+     */
     private fun signInNewAccount(
         nome: String,
         email: String,
@@ -71,10 +78,15 @@ class SignInFragment : Fragment() {
                 .addOnCompleteListener(requireActivity()) { task ->
                     if (task.isSuccessful) {
                         Log.d(TAG,  "createUserWithEmail:success")
+                        // inicializa o user
                         val user = auth.currentUser
+                        // inicializa o PreferencesHelper
                         val preferencesHelper = PreferencesHelper.getInstance(requireContext())
+                        // salva os dados do usuário no PreferencesHelper
                         preferencesHelper.uid = user!!.uid
+                        // peg ao IMEI do dispositivo
                         val userIMEI = getIMEI(requireContext())
+                        // salva o usuário no Firestore
                         salvarUsuarioNoFirestore(nome, email, senha, userIMEI, user.uid)
                         Snackbar.make(requireView(),"Usuário criado com sucesso",Snackbar.LENGTH_LONG).show()
                         findNavController().navigate(R.id.action_signInFragment_to_logInFragment)
@@ -89,6 +101,14 @@ class SignInFragment : Fragment() {
 
     }
 
+    /**
+     * Salva o usuário no Firestore
+     * @param nome Nome do usuário
+     * @param email Email do usuário
+     * @param senha Senha do usuário
+     * @param imei IMEI do dispositivo
+     * @param uid UID do usuário
+     */
     private fun salvarUsuarioNoFirestore(
         nome: String,
         email: String,
@@ -96,8 +116,10 @@ class SignInFragment : Fragment() {
         imei: String,
         uid: String
     ) {
-       val db = FirebaseFirestore.getInstance()
+        // inicializa o Firestore
+        val db = FirebaseFirestore.getInstance()
 
+        // Cria um HashMap com os dados do usuário
         val user = hashMapOf(
             "nome" to nome,
             "email" to email,
@@ -106,6 +128,7 @@ class SignInFragment : Fragment() {
             "uid" to uid
         )
 
+        // Salva o usuário no Firestore na coleção "users" com o uid como documento
         db.collection("users")
             .document(uid)
             .set(user)
@@ -117,6 +140,13 @@ class SignInFragment : Fragment() {
             }
     }
 
+    /**
+     * Valida os dados do usuário
+     * @param nome Nome do usuário
+     * @param email Email do usuário
+     * @param pass Senha do usuário
+     * @return Retorna true se os dados forem válidos, caso contrário retorna false
+     */
     private fun isUserDatavalid(
         nome: String,
         email: String,
@@ -132,20 +162,29 @@ class SignInFragment : Fragment() {
         return android.provider.Settings.Secure.getString(context.contentResolver, android.provider.Settings.Secure.ANDROID_ID)
     }
 
-    //necessário validar ainda
+    /**
+     * Valida o nome do usuário
+     * O nome deve ter entre 3 e 15 caracteres
+     */
     private fun userNameValidation(nome: String): Boolean {
         if (nome.length < 3 || nome.length > 15) return false
         return true
     }
 
-    //necessário validar
+    /**
+     * Valida o email do usuário
+     * O email deve conter um "@" e seguir o padrão de email
+     */
     private fun userEmailValidation(email: String): Boolean {
         if (!email.contains("@")) return false
 
         return true
     }
 
-    //necessario validar
+    /**
+     * Valida a senha do usuário
+     * A senha deve ter pelo menos 6 caracteres
+     */
     private fun userPasswordValidation(pass: String): Boolean {
         //pelo menos 6 caracteres
         if (pass.length < 6) return false
