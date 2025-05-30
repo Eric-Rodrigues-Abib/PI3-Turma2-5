@@ -32,6 +32,8 @@ class TermsAndConditionFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Ao clicar no texto dos termos e condições, abre um AlertDialog com os termos
+        // e condições. Assim o usuário pode ler os termos e condições antes de aceitar.
         binding.txTermsAndCondition.setOnClickListener {
             val builder = AlertDialog.Builder(requireContext())
             builder.setTitle("Termos e Condições")
@@ -45,14 +47,17 @@ class TermsAndConditionFragment : Fragment() {
 
         val preferencesHelper = PreferencesHelper.getInstance(requireContext())
 
-        //check if the checkbox is marked to click in continue
+        // Ao clicar em continuar, verifica se o checkbox está marcado
         binding.btnContinuar.setOnClickListener {
             if (binding.CBitem1.isChecked)
             {
+                // estando marcado o checkbox, salva o estado de termsAndConditionBool como true
+                // e navega para o próximo fragmento
                 preferencesHelper.termsAndConditionBool = true
                 findNavController().navigate(R.id.action_termsAndConditionFragment_to_logInFragment)
             }
             else{
+                // se não estiver marcado, exibe um AlertDialog informando que o usuário precisa aceitar os termos e condições
                 val builder = AlertDialog.Builder(requireContext())
                 builder.setTitle("Erro")
                 builder.setMessage("Você precisa aceitar os termos e condições para continuar")
@@ -62,6 +67,7 @@ class TermsAndConditionFragment : Fragment() {
         }
     }
 
+    // Limpa o binding quando a view é destruída
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

@@ -33,16 +33,21 @@ class RedefinirSenhaFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Inicializa os componentes da view
         etEmail = view.findViewById(R.id.etEmailRedefinir)
         btnEnviar = view.findViewById(R.id.btnEnviarNovaSenha)
         auth = FirebaseAuth.getInstance()
 
+        // Configura o clique do botão de enviar
         btnEnviar.setOnClickListener {
+            // Recebe o email do campo de texto e verifica se está vazio
             val email = etEmail.text.toString().trim()
 
+            // Se o email estiver vazio, exibe um Toast solicitando o preenchimento
             if (email.isEmpty()) {
                 Toast.makeText(requireContext(), "Digite seu email", Toast.LENGTH_SHORT).show()
             } else {
+                // Se o email estiver preenchido, tenta enviar o email de redefinição de senha
                 auth.sendPasswordResetEmail(email)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
@@ -64,11 +69,13 @@ class RedefinirSenhaFragment : Fragment() {
             }
         }
 
+        // Configura o clique do botão de voltar
         binding.IBback.setOnClickListener {
             findNavController().navigate(R.id.action_redefinirSenhaFragment_to_logInFragment)
         }
     }
 
+    // Limpa o binding quando a view é destruída
     override fun onDestroyView() {
         super.onDestroyView()
     }

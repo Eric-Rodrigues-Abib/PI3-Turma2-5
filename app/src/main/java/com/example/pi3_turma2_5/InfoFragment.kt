@@ -33,6 +33,9 @@ class InfoFragment : Fragment() {
         try {
             val preferencesHelper = PreferencesHelper.getInstance(requireContext())
 
+            // Assim que clicado no botão, salva o estado de infoSeen como true
+            // salva no PreferencesHelper
+            // e navega para o próximo fragmento
             binding.btnEntendido.setOnClickListener {
                 try{
                     preferencesHelper.infoBool = true
@@ -46,6 +49,7 @@ class InfoFragment : Fragment() {
         }
     }
 
+    // Limpa o binding quando a view é destruída
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

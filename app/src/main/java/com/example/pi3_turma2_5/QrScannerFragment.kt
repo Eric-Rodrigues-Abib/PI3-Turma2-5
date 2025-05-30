@@ -43,6 +43,7 @@ class QrScannerFragment : Fragment() {
         return binding.root
     }
 
+    // Requisita permissão da câmera quando o fragmento é criado
     private val requestPermissionLauncher =
         registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
@@ -52,8 +53,12 @@ class QrScannerFragment : Fragment() {
             }
         }
 
+    // Verifica a permissão da câmera quando o fragmento é retomado
     override fun onResume() {
         super.onResume()
+        // Verifica se a permissão da câmera já foi concedida
+         // Se sim, inicia a câmera; caso contrário, solicita a permissão
+         // Isso garante que a câmera só seja iniciada se a permissão for concedida
         if (ContextCompat.checkSelfPermission(requireContext(), cameraPermission)
             == PackageManager.PERMISSION_GRANTED) {
             startCamera()
@@ -62,23 +67,33 @@ class QrScannerFragment : Fragment() {
         }
     }
 
+    /**
+     * Inicia a câmera e configura o analisador de imagem para processar os QR codes.
+     * Utiliza ProcessCameraProvider para vincular o ciclo de vida da câmera ao fragmento.
+     */
     private fun startCamera() {
+        // Verifica se a permissão da câmera foi concedida
         val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
         cameraProviderFuture.addListener({
             cameraProvider = cameraProviderFuture.get()
 
+            // Configura o Preview e o ImageAnalysis para a câmera
             val preview = Preview.Builder().build().also {
                 it.setSurfaceProvider(binding.previewView.surfaceProvider)
             }
 
+            // Configura o ImageAnalysis para processar os QR codes
             val analyzer = ImageAnalysis.Builder()
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build()
 
+            // Define o analisador de imagem para processar os QR codes
             analyzer.setAnalyzer(ContextCompat.getMainExecutor(requireContext())) { imageProxy ->
+                // Processa o ImageProxy para ler QR codes
                 processImageProxy(imageProxy)
             }
 
+            // Seleciona a câmera traseira como padrão
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
             try {
@@ -91,18 +106,28 @@ class QrScannerFragment : Fragment() {
         }, ContextCompat.getMainExecutor(requireContext()))
     }
 
+    /**
+     * Processa o ImageProxy recebido do analisador de imagem.
+     * Extrai a imagem e utiliza o BarcodeScanner para detectar QR codes.
+     * Se um QR code for detectado, processa o token de login contido nele.
+     */
     @androidx.annotation.OptIn(ExperimentalGetImage::class)
     private fun processImageProxy(imageProxy: ImageProxy) {
+        // Verifica se a imagem está disponível
         val mediaImage = imageProxy.image ?: run {
             imageProxy.close()
             return
         }
+        // Cria um InputImage a partir do MediaImage
         val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
 
+        // Processa a imagem para detectar QR codes
         scanner.process(image)
             .addOnSuccessListener { barcodes ->
                 for (barcode in barcodes) {
+                    // Pega o valor do QR code
                     val loginToken = barcode.rawValue
+                    // Se o valor não for nulo, processa o token de login
                     if (loginToken != null) {
                         Log.d(TAG, "QR lido: $loginToken")
                         processLoginToken(loginToken)
@@ -118,10 +143,17 @@ class QrScannerFragment : Fragment() {
             }
     }
 
+    /**
+     * Processa o token de login lido do QR code.
+     * Verifica se o token é válido e atualiza o status de login do usuário no Firestore.
+     * Exibe um diálogo de confirmação ao usuário após o login ser confirmado com sucesso.
+     */
     private fun processLoginToken(loginToken: String) {
+        // Inicializa o Firebase Auth e Firestore
         val auth = Firebase.auth
         val db = FirebaseFirestore.getInstance()
 
+        // Verifica se o usuário está logado
         val user = auth.currentUser
         if (user == null) {
             Toast.makeText(requireContext(), "Usuário Não logado", Toast.LENGTH_SHORT).show()
@@ -129,23 +161,28 @@ class QrScannerFragment : Fragment() {
             return
         }
 
+        // Verifica se o loginToken é válido no Firestore
         db.collection("login")
             .whereEqualTo("loginToken", loginToken)
             .get()
             .addOnSuccessListener { result ->
+                // Se não houver documentos, o token é inválido ou expirado
                 if (result.isEmpty) {
                     Toast.makeText(requireContext(), "Token inválido ou expirado", Toast.LENGTH_SHORT).show()
                     findNavController().navigate(R.id.action_qrScannerFragment_to_passListFragment)
                     return@addOnSuccessListener
                 }
 
+                // Se houver documentos, processa o primeiro documento encontrado
                 val doc = result.documents[0]
+                // Verifica se o QR code já foi utilizado
                 if (doc.contains("user")) {
                     Toast.makeText(requireContext(), "Este QR já foi utilizado", Toast.LENGTH_SHORT).show()
                     findNavController().navigate(R.id.action_qrScannerFragment_to_passListFragment)
                     return@addOnSuccessListener
                 }
 
+                // Atualiza o documento com o usuário e a data de confirmação do login
                 val docRef = db.collection("login").document(doc.id)
                 docRef.update(
                     mapOf(
@@ -153,8 +190,10 @@ class QrScannerFragment : Fragment() {
                         "loginConfirmedAt" to com.google.firebase.Timestamp.now()
                     )
                 ).addOnSuccessListener {
+                    // Login confirmado com sucesso, agora busca o parceiro associado ao token
                     val apiKey = doc.getString("apiKey")
 
+                    // Busca o partner associado ao apiKey
                     db.collection("partners")
                         .whereEqualTo("apiKey", apiKey)
                         .get()
@@ -162,6 +201,7 @@ class QrScannerFragment : Fragment() {
                             val partnerDoc = partnerResult.documents[0]
                             val partnerName = partnerDoc.getString("url") ?: "o site"
 
+                            // Exibe um diálogo de confirmação ao usuário
                             val dialog = AlertDialog.Builder(requireContext())
                                 .setTitle("SuperID")
                                 .setMessage("Login confirmado com sucesso em $partnerName")
@@ -170,7 +210,7 @@ class QrScannerFragment : Fragment() {
 
                             dialog.show()
 
-                            //make show during 5 seconds
+                            // mostra o diálogo por 5 segundos e depois navega para PassListFragment
                             binding.root.postDelayed({
                                 if (dialog.isShowing) dialog.dismiss()
                                 findNavController().navigate(R.id.action_qrScannerFragment_to_passListFragment)
@@ -192,6 +232,7 @@ class QrScannerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Configura o botão de fechar o scanner para navegar de volta para PassListFragment
         binding.btnCloseScanner.setOnClickListener {
             findNavController().navigate(R.id.action_qrScannerFragment_to_passListFragment)
         }

@@ -36,11 +36,13 @@ class PassListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Recebe o resultado do QR Code, se houver
         val qrResult = arguments?.getString("qr_value")
         qrResult?.let {
             Toast.makeText(requireContext(), "QrCode recebido: $it", Toast.LENGTH_SHORT).show()
         }
 
+        // Passa os dados pelo adapter das senhas cadastradas
         adapter = PasswordAdapter(passwordList) { password ->
             val bundle = Bundle().apply {
                 putString("nomeSite", password.nomeSite)
@@ -54,25 +56,36 @@ class PassListFragment : Fragment() {
             findNavController().navigate(R.id.action_passListFragment_to_passwordDetailsFragment, bundle)
         }
 
+        // Configura o RecyclerView
         binding.passwordRecyclerView.adapter = adapter
 
+        // Configura o botão de adicionar para navegar para a tela de adicionar nova senha
         binding.btnAdd.setOnClickListener {
             findNavController().navigate(R.id.action_passListFragment_to_addNewPassFragment)
         }
+        // Configura o botão de QR Code para navegar para a tela de scanner
         binding.btnQRCode.setOnClickListener {
             findNavController().navigate(R.id.action_passListFragment_to_qrScannerFragment)
         }
 
+        // Puxa os dados do Firebase Firestore
         fetchPasswords()
     }
 
+    /**
+     * Função para buscar as senhas do usuário autenticado no Firebase Firestore
+     * e atualizar a lista de senhas exibida no RecyclerView.
+     */
     private fun fetchPasswords() {
+        // Verifica se o usuário está autenticado
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        // Busca as senhas do usuário autenticado
         db.collection("users").document(userId).collection("listPassword")
             .get()
             .addOnSuccessListener { result ->
                 passwordList.clear()
                 Log.d("FIREBASE_LIST", "Documentos retornados: ${result.size()}")
+                // Itera sobre os documentos retornados e adiciona à lista
                 for (doc in result) {
                     val password = doc.toObject(Password::class.java).copy(documentId = doc.id)
                     Log.d("FIREBASE_LIST", "Senha carregada: $password")
@@ -87,6 +100,7 @@ class PassListFragment : Fragment() {
                     binding.passwordRecyclerView.visibility = View.VISIBLE
                 }
 
+                // Notifica o adapter que os dados foram atualizados
                 adapter.notifyDataSetChanged()
             }
             .addOnFailureListener {
@@ -99,6 +113,8 @@ class PassListFragment : Fragment() {
         _binding = null
     }
 
+    // Atualiza o fragment para pegar os dados novos ao voltar das outras telas
+    // sempre mantendo atualizado
     override fun onResume() {
         super.onResume()
         fetchPasswords()
