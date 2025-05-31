@@ -63,13 +63,37 @@ class PassListFragment : Fragment() {
         binding.btnAdd.setOnClickListener {
             findNavController().navigate(R.id.action_passListFragment_to_addNewPassFragment)
         }
+        val user = FirebaseAuth.getInstance().currentUser
         // Configura o botão de QR Code para navegar para a tela de scanner
         binding.btnQRCode.setOnClickListener {
+            // Verifica se o usuário está autenticado antes de navegar
+            if (user == null || user.isEmailVerified == false) {
+                Log.d("PassListFragment", "Usuário não autenticado ou email não verificado: ${user?.uid} e ${user?.isEmailVerified}")
+                Toast.makeText(requireContext(), "Por favor, verifique seu email antes de usar o QR Code", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             findNavController().navigate(R.id.action_passListFragment_to_qrScannerFragment)
         }
 
         // Puxa os dados do Firebase Firestore
         fetchPasswords()
+
+        user?.reload()?.addOnSuccessListener {
+            if (!user.isEmailVerified) {
+                binding.tvEmailVerification.visibility = View.VISIBLE
+                binding.tvEmailVerification.setOnClickListener {
+                    user.sendEmailVerification()
+                        .addOnSuccessListener {
+                            Toast.makeText(requireContext(), "Email de verificação enviado", Toast.LENGTH_SHORT).show()
+                        }
+                        .addOnFailureListener {
+                            Toast.makeText(requireContext(), "Erro ao enviar email de verificação", Toast.LENGTH_SHORT).show()
+                        }
+                }
+            } else {
+                binding.tvEmailVerification.visibility = View.GONE
+            }
+        }
     }
 
     /**
