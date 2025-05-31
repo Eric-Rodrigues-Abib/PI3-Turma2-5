@@ -133,6 +133,15 @@ class SignInFragment : Fragment() {
             .document(uid)
             .set(user)
             .addOnSuccessListener {
+                // Enviar email de verificação
+                val user = auth.currentUser
+                user?.sendEmailVerification()
+                    ?.addOnSuccessListener {
+                        Log.d(TAG, "Email de verificação enviado com sucesso")
+                    }
+                    ?.addOnFailureListener { e ->
+                        Log.e(TAG, "Erro ao enviar email de verificação", e)
+                    }
                 Log.d("Firestore","usuário salvo com sucesso")
             }
             .addOnFailureListener { e ->
