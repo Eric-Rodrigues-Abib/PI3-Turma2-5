@@ -156,8 +156,10 @@ class QrScannerFragment : Fragment() {
         // Verifica se o usuário está logado
         val user = auth.currentUser
         if (user == null) {
-            Toast.makeText(requireContext(), "Usuário Não logado", Toast.LENGTH_SHORT).show()
-            findNavController().navigate(R.id.action_qrScannerFragment_to_passListFragment)
+            if (isAdded){
+                Toast.makeText(requireContext(), "Usuário Não logado", Toast.LENGTH_SHORT).show()
+                findNavController().navigate(R.id.action_qrScannerFragment_to_passListFragment)
+            }
             return
         }
 
@@ -166,62 +168,66 @@ class QrScannerFragment : Fragment() {
             .whereEqualTo("loginToken", loginToken)
             .get()
             .addOnSuccessListener { result ->
+                if (!isAdded) return@addOnSuccessListener
+
                 // Se não houver documentos, o token é inválido ou expirado
                 if (result.isEmpty) {
                     Toast.makeText(requireContext(), "Token inválido ou expirado", Toast.LENGTH_SHORT).show()
-                    findNavController().navigate(R.id.action_qrScannerFragment_to_passListFragment)
+                    if (isAdded) {
+                        findNavController().navigate(R.id.action_qrScannerFragment_to_passListFragment)
+                    }
                     return@addOnSuccessListener
-                }
+                } else {
+                    // Se houver documentos, processa o primeiro documento encontrado
+                    val doc = result.documents[0]
+                    // Verifica se o QR code já foi utilizado
+                    if (doc.contains("user")) {
+                        Toast.makeText(requireContext(), "Este QR já foi utilizado", Toast.LENGTH_SHORT).show()
+                        findNavController().navigate(R.id.action_qrScannerFragment_to_passListFragment)
+                        return@addOnSuccessListener
+                    }
 
-                // Se houver documentos, processa o primeiro documento encontrado
-                val doc = result.documents[0]
-                // Verifica se o QR code já foi utilizado
-                if (doc.contains("user")) {
-                    Toast.makeText(requireContext(), "Este QR já foi utilizado", Toast.LENGTH_SHORT).show()
-                    findNavController().navigate(R.id.action_qrScannerFragment_to_passListFragment)
-                    return@addOnSuccessListener
-                }
+                    // Atualiza o documento com o usuário e a data de confirmação do login
+                    val docRef = db.collection("login").document(doc.id)
+                    docRef.update(
+                        mapOf(
+                            "user" to user.uid,
+                            "loginConfirmedAt" to com.google.firebase.Timestamp.now()
+                        )
+                    ).addOnSuccessListener {
+                        // Login confirmado com sucesso, agora busca o parceiro associado ao token
+                        val apiKey = doc.getString("apiKey")
 
-                // Atualiza o documento com o usuário e a data de confirmação do login
-                val docRef = db.collection("login").document(doc.id)
-                docRef.update(
-                    mapOf(
-                        "user" to user.uid,
-                        "loginConfirmedAt" to com.google.firebase.Timestamp.now()
-                    )
-                ).addOnSuccessListener {
-                    // Login confirmado com sucesso, agora busca o parceiro associado ao token
-                    val apiKey = doc.getString("apiKey")
+                        // Busca o partner associado ao apiKey
+                        db.collection("partners")
+                            .whereEqualTo("apiKey", apiKey)
+                            .get()
+                            .addOnSuccessListener { partnerResult ->
+                                val partnerDoc = partnerResult.documents.firstOrNull()
+                                val partnerName = partnerDoc?.getString("url") ?: "o site"
 
-                    // Busca o partner associado ao apiKey
-                    db.collection("partners")
-                        .whereEqualTo("apiKey", apiKey)
-                        .get()
-                        .addOnSuccessListener { partnerResult ->
-                            val partnerDoc = partnerResult.documents[0]
-                            val partnerName = partnerDoc.getString("url") ?: "o site"
+                                // Exibe um diálogo de confirmação ao usuário
+                                val dialog = AlertDialog.Builder(requireContext())
+                                    .setTitle("SuperID")
+                                    .setMessage("Login confirmado com sucesso em $partnerName")
+                                    .setCancelable(false)
+                                    .create()
 
-                            // Exibe um diálogo de confirmação ao usuário
-                            val dialog = AlertDialog.Builder(requireContext())
-                                .setTitle("SuperID")
-                                .setMessage("Login confirmado com sucesso em $partnerName")
-                                .setCancelable(false)
-                                .create()
+                                dialog.show()
 
-                            dialog.show()
+                                // mostra o diálogo por 5 segundos e depois navega para PassListFragment
+                                binding.root.postDelayed({
+                                    if (dialog.isShowing) dialog.dismiss()
+                                    findNavController().navigate(R.id.action_qrScannerFragment_to_passListFragment)
+                                }, 5000)
 
-                            // mostra o diálogo por 5 segundos e depois navega para PassListFragment
-                            binding.root.postDelayed({
-                                if (dialog.isShowing) dialog.dismiss()
+                            }.addOnFailureListener {
+                                Toast.makeText(requireContext(), "Erro ao buscar parceiro: ${it.message}", Toast.LENGTH_SHORT).show()
                                 findNavController().navigate(R.id.action_qrScannerFragment_to_passListFragment)
-                            }, 5000)
-
-                        }.addOnFailureListener {
-                            Toast.makeText(requireContext(), "Erro ao buscar parceiro: ${it.message}", Toast.LENGTH_SHORT).show()
-                            findNavController().navigate(R.id.action_qrScannerFragment_to_passListFragment)
-                        }
-                }.addOnFailureListener { e ->
-                    Toast.makeText(requireContext(), "Erro ao confirmar login: ${e.message}", Toast.LENGTH_SHORT).show()
+                            }
+                    }.addOnFailureListener { e ->
+                        Toast.makeText(requireContext(), "Erro ao confirmar login: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
             .addOnFailureListener {
