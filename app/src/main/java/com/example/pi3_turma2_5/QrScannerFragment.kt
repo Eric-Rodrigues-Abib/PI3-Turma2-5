@@ -35,6 +35,9 @@ class QrScannerFragment : Fragment() {
 
     private val cameraPermission = Manifest.permission.CAMERA
 
+    @Volatile
+    private var isProcessing = false
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -128,7 +131,8 @@ class QrScannerFragment : Fragment() {
                     // Pega o valor do QR code
                     val loginToken = barcode.rawValue
                     // Se o valor não for nulo, processa o token de login
-                    if (loginToken != null) {
+                    if (loginToken != null && !isProcessing) {
+                        isProcessing = true
                         Log.d(TAG, "QR lido: $loginToken")
                         processLoginToken(loginToken)
                         break
@@ -159,6 +163,7 @@ class QrScannerFragment : Fragment() {
             if (isAdded){
                 Toast.makeText(requireContext(), "Usuário Não logado", Toast.LENGTH_SHORT).show()
                 findNavController().navigate(R.id.action_qrScannerFragment_to_passListFragment)
+                isProcessing = false
             }
             return
         }
@@ -175,6 +180,7 @@ class QrScannerFragment : Fragment() {
                     Toast.makeText(requireContext(), "Token inválido ou expirado", Toast.LENGTH_SHORT).show()
                     if (isAdded) {
                         findNavController().navigate(R.id.action_qrScannerFragment_to_passListFragment)
+                        isProcessing = false
                     }
                     return@addOnSuccessListener
                 } else {
@@ -184,6 +190,7 @@ class QrScannerFragment : Fragment() {
                     if (doc.contains("user")) {
                         Toast.makeText(requireContext(), "Este QR já foi utilizado", Toast.LENGTH_SHORT).show()
                         findNavController().navigate(R.id.action_qrScannerFragment_to_passListFragment)
+                        isProcessing = false
                         return@addOnSuccessListener
                     }
 
@@ -223,9 +230,11 @@ class QrScannerFragment : Fragment() {
 
                             }.addOnFailureListener {
                                 Toast.makeText(requireContext(), "Erro ao buscar parceiro: ${it.message}", Toast.LENGTH_SHORT).show()
+                                isProcessing = false
                                 findNavController().navigate(R.id.action_qrScannerFragment_to_passListFragment)
                             }
                     }.addOnFailureListener { e ->
+                        isProcessing = false
                         Toast.makeText(requireContext(), "Erro ao confirmar login: ${e.message}", Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -233,6 +242,7 @@ class QrScannerFragment : Fragment() {
             .addOnFailureListener {
                 Log.e(TAG, "Erro ao buscar loginToken: ${it.message}")
                 Toast.makeText(requireContext(), "Erro ao buscar loginToken", Toast.LENGTH_SHORT).show()
+                isProcessing = false
             }
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
